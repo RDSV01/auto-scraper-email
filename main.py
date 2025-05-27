@@ -117,8 +117,9 @@ def run_with_timeout(func, args=(), timeout=10):
             return None
 
 def search_and_scrape(query, max_emails):
-    collected_emails = set()
+    collected_emails = []
     processed_domains = set()
+    used_email_domains = set()
 
     print(f"Recherche d'emails pour la requête: '{query}'...")
 
@@ -146,18 +147,21 @@ def search_and_scrape(query, max_emails):
             continue
 
         for email in emails:
-            if len(collected_emails) >= max_emails:
-                break
-            if email not in collected_emails:
-                collected_emails.add(email)
-                print(f"Trouvé: {email} (domaine: {domain})")
-                with open('emails.txt', 'a') as f:
-                    f.write(f"{email}\n")
+            email_domain = email.split('@')[-1]
+            if email_domain in used_email_domains:
+                continue  # On a déjà une adresse pour ce domaine
 
-        processed_domains.add(domain)
+            collected_emails.append(email)
+            used_email_domains.add(email_domain)
+            processed_domains.add(domain)
+            print(f"Trouvé: {email} (domaine: {domain})")
+            with open('emails.txt', 'a') as f:
+                f.write(f"{email}\n")
+            break  # On garde un seul email par site
+
         time.sleep(REQUEST_DELAY)
 
-    return list(collected_emails)
+    return collected_emails
 
 def main():
     parser = argparse.ArgumentParser(description="Scraper d'emails à partir d'une requête de recherche")
