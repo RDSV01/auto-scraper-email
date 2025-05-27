@@ -37,8 +37,22 @@ def is_domain_excluded(url):
     return False
 
 def extract_emails(text):
-    email_pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
-    return re.findall(email_pattern, text, re.IGNORECASE)
+    email_pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b'
+    raw_emails = re.findall(email_pattern, text, re.IGNORECASE)
+
+    # Extensions valides (modifiable)
+    valid_extensions = ['.fr', '.com', '.net', '.org', '.io', '.co']
+
+    cleaned_emails = set()
+    for email in raw_emails:
+        # Enlever les résidus comme contact@domaine.frJob ou .frChat
+        email = re.split(r'[^a-zA-Z0-9.@_-]', email)[0]
+
+        # Vérifie l'extension valide
+        if any(email.endswith(ext) for ext in valid_extensions):
+            cleaned_emails.add(email.lower())  # Minuscule pour éviter les doublons
+
+    return list(cleaned_emails)
 
 def get_website_content(url):
     try:
@@ -74,12 +88,16 @@ def find_emails_in_website(url, check_contact_page=True):
     text = soup.get_text()
     emails = extract_emails(text)
 
+    # Ajout des mailto:
     mailto_links = soup.select('a[href^="mailto:"]')
     for link in mailto_links:
         href = link.get('href', '')
-        email = href.replace('mailto:', '').strip()
-        if email and email not in emails:
+        email = href.replace('mailto:', '').strip().lower()
+        if email:
             emails.append(email)
+
+    # Nettoyage final
+    emails = extract_emails(' '.join(emails))
 
     if not emails and check_contact_page:
         contact_url = find_contact_page_url(url)
@@ -87,7 +105,7 @@ def find_emails_in_website(url, check_contact_page=True):
             print(f"Aucun email trouvé sur {url}, vérification de la page contact: {contact_url}")
             return find_emails_in_website(contact_url, check_contact_page=False)
 
-    return emails
+    return list(set(emails))  # Supprimer les doublons
 
 def run_with_timeout(func, args=(), timeout=10):
     """Exécute une fonction dans un processus séparé avec un timeout"""
@@ -99,7 +117,7 @@ def run_with_timeout(func, args=(), timeout=10):
             return None
 
 def search_and_scrape(query, max_emails):
-    collected_emails = []
+    collected_emails = set()
     processed_domains = set()
 
     print(f"Recherche d'emails pour la requête: '{query}'...")
@@ -127,20 +145,19 @@ def search_and_scrape(query, max_emails):
             print(f"Timeout ou échec du traitement de {url}")
             continue
 
-        if emails:
-            email = emails[0]
-            if domain not in processed_domains:
-                collected_emails.append(email)
-                processed_domains.add(domain)
+        for email in emails:
+            if len(collected_emails) >= max_emails:
+                break
+            if email not in collected_emails:
+                collected_emails.add(email)
                 print(f"Trouvé: {email} (domaine: {domain})")
                 with open('emails.txt', 'a') as f:
                     f.write(f"{email}\n")
-        else:
-            print(f"Aucun email trouvé sur {url} (domaine: {domain})")
 
+        processed_domains.add(domain)
         time.sleep(REQUEST_DELAY)
 
-    return collected_emails
+    return list(collected_emails)
 
 def main():
     parser = argparse.ArgumentParser(description="Scraper d'emails à partir d'une requête de recherche")
