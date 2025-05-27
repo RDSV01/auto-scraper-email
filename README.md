@@ -2,7 +2,7 @@
 ```bash
   git clone https://github.com/RDSV01/auto-scraper-email.git
 
-  pip install requests beautifulsoup4 googlesearch-python
+  pip install -r requirements.txt
 ```
 
 # Exemple d'utilisation
