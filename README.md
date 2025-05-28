@@ -23,14 +23,6 @@
 pip install -r requirements.txt
 ```
 
-**Dépendances requises :**
-```
-requests
-beautifulsoup4
-duckduckgo-search
-argparse
-```
-
 ## 📋 Utilisation
 
 ```bash
