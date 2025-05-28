@@ -1,6 +1,6 @@
-# 📧 SCRAPEFORGE - Email Scraper
+# 📧 SCRAPFORGE - Email Scraper
 
-**SCRAPEFORGE** est un outil intelligent de collecte d'adresses emails depuis le web. Il utilise DuckDuckGo (moins limitant que Google) pour rechercher des sites web pertinents et extrait automatiquement les adresses emails.
+**SCRAPFORGE** est un outil intelligent de collecte d'adresses emails depuis le web. Il utilise DuckDuckGo (moins limitant que Google) pour rechercher des sites web pertinents et extrait automatiquement les adresses emails.
 
 ## ✨ Fonctionnalités
 
